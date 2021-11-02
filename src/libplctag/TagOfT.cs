@@ -120,6 +120,7 @@ namespace libplctag
         /// <inheritdoc cref="Tag.Initialize"/>
         public void Initialize()
         {
+            _plcMapper.PreInitialize(_tag);
             _tag.Initialize();
             DecodeAll();
         }
@@ -127,6 +128,7 @@ namespace libplctag
         /// <inheritdoc cref="Tag.InitializeAsync"/>
         public async Task InitializeAsync(CancellationToken token = default)
         {
+            _plcMapper.PreInitialize(_tag);
             await _tag.InitializeAsync(token);
             DecodeAll();
         }

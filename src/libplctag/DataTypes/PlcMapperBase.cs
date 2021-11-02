@@ -72,6 +72,11 @@ namespace libplctag.DataTypes
         T[,,] IPlcMapper<T[,,]>.Decode(Tag tag) => DecodeArray(tag).To3DArray<T>(ArrayDimensions[0], ArrayDimensions[1], ArrayDimensions[2]);
 
         void IPlcMapper<T[,,]>.Encode(Tag tag, T[,,] value) => EncodeArray(tag, value.To1DArray());
+
+        public void PreInitialize(Tag tag)
+        {
+            // Do nothing
+        }
     }
 
 }
