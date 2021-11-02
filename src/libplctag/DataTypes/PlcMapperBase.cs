@@ -73,7 +73,7 @@ namespace libplctag.DataTypes
 
         void IPlcMapper<T[,,]>.Encode(Tag tag, T[,,] value) => EncodeArray(tag, value.To1DArray());
 
-        public void PreInitialize(Tag tag)
+        public void Configure(Tag tag)
         {
             // Do nothing
         }
