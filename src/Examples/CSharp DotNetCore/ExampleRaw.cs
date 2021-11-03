@@ -66,11 +66,11 @@ namespace CSharpDotNetCore
                 0x00
             };
 
-            for (int ii = 0; ii < raw_payload.Length; ii++)
-                tag.SetUInt8(ii, raw_payload[ii]);
-
             tag.Name = "@raw";
             tag.SetSize(raw_payload.Length);
+
+            for (int ii = 0; ii < raw_payload.Length; ii++)
+                tag.SetUInt8(ii, raw_payload[ii]);
 
         }
 
