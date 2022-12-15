@@ -15,33 +15,51 @@ using System.Threading.Tasks;
 
 namespace libplctag
 {
-    class NativeTagWrapperAsync : NativeTagWrapperBase, IDisposable
+    static class NativeTagWrapperAsyncExtensions
     {
         private const int TIMEOUT_VALUE_THAT_INDICATES_ASYNC_OPERATION = 0;
 
-        public NativeTagWrapperAsync(INativeTag nativeMethods) : base(nativeMethods) { }
 
-        ~NativeTagWrapperAsync()
+        public static async Task InitializeAsync(this NativeTagWrapperBase nativeTagWrapperBase, CancellationToken token = default)
         {
-            Dispose();
-        }
-
-        public async Task InitializeAsync(CancellationToken token = default)
-        {
-            ThrowIfAlreadyDisposed();
-            ThrowIfAlreadyInitialized();
+            nativeTagWrapperBase.ThrowIfAlreadyDisposed();
+            nativeTagWrapperBase.ThrowIfAlreadyInitialized();
 
             using (var cts = CancellationTokenSource.CreateLinkedTokenSource(token))
             {
-                cts.CancelAfter(Timeout);
+                cts.CancelAfter(nativeTagWrapperBase.Timeout);
+
+                var createTasks = new ConcurrentStack<TaskCompletionSource<Status>>();
+
+
+                EventHandler<TagEventArgs> createdTaskCompleter = (s, e) => 
+                {
+                    {
+                        if (createTasks.TryPop(out var createTask))
+                        {
+                            switch (e.Status)
+                            {
+                                case Status.Pending:
+                                    // Do nothing, wait for another callback
+                                    break;
+                                default:
+                                    createTask?.SetResult(e.Status);
+                                    break;
+                            }
+                        }
+                    }
+                };
+
+                nativeTagWrapperBase.Created += createdTaskCompleter;
+
 
                 using (
                     cts.Token.Register(() =>
                     {
                         if (createTasks.TryPop(out var createTask))
                         {
-                            Abort();
-                            RemoveEventsAndRemoveCallback();
+                            nativeTagWrapperBase.Abort();
+                            nativeTagWrapperBase.Created -= createdTaskCompleter;
 
                             if (token.IsCancellationRequested)
                                 createTask.SetCanceled();
@@ -53,21 +71,19 @@ namespace libplctag
                     })
                 )
                 {
-                    SetUpEvents();
-
                     var createTask = new TaskCompletionSource<Status>(
                         TaskCreationOptions.RunContinuationsAsynchronously
                     );
                     createTasks.Push(createTask);
 
-                    base.Initialize(TIMEOUT_VALUE_THAT_INDICATES_ASYNC_OPERATION);
+                    nativeTagWrapperBase.Initialize(TIMEOUT_VALUE_THAT_INDICATES_ASYNC_OPERATION);
 
-                    if (GetStatus() == Status.Pending)
+                    if (nativeTagWrapperBase.GetStatus() == Status.Pending)
                         await createTask.Task;
 
-                    ThrowIfStatusNotOk(createTask.Task.Result);
+                    nativeTagWrapperBase.ThrowIfStatusNotOk(createTask.Task.Result);
 
-                    _isInitialized = true;
+                    nativeTagWrapperBase._isInitialized = true;
                 }
             }
         }
@@ -173,7 +189,7 @@ namespace libplctag
         private readonly ConcurrentStack<TaskCompletionSource<Status>> createTasks =
             new ConcurrentStack<TaskCompletionSource<Status>>();
 
-        void CreatedTaskCompleter(object sender, TagEventArgs e)
+        static void CreatedTaskCompleter(object sender, TagEventArgs e)
         {
             if (createTasks.TryPop(out var createTask))
             {

@@ -27,7 +27,7 @@ namespace libplctag
         private libplctag.NativeImport.plctag.callback_func_ex coreLibCallbackFuncExDelegate;
 
         protected bool _isDisposed = false;
-        protected bool _isInitialized = false;
+        internal bool _isInitialized = false;
 
         readonly INativeTag _native;
 
@@ -503,19 +503,19 @@ namespace libplctag
             return sb.ToString().Substring(0, stringLength);
         }
 
-        protected void ThrowIfAlreadyDisposed()
+        internal void ThrowIfAlreadyDisposed()
         {
             if (_isDisposed)
                 throw new ObjectDisposedException(GetType().FullName);
         }
 
-        protected void ThrowIfAlreadyInitialized()
+        internal void ThrowIfAlreadyInitialized()
         {
             if (_isInitialized)
                 throw new InvalidOperationException("Already initialized");
         }
 
-        protected void ThrowIfStatusNotOk(Status? status = null)
+        internal void ThrowIfStatusNotOk(Status? status = null)
         {
             var statusToCheck = status ?? GetStatus();
             if (statusToCheck != Status.Ok)
@@ -567,7 +567,7 @@ namespace libplctag
             field = value;
         }
 
-        protected void Initialize(int millisecondTimeout)
+        internal void Initialize(int millisecondTimeout)
         {
             var attributeString = GetAttributeString();
 
