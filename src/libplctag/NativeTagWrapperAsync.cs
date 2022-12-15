@@ -85,37 +85,48 @@ namespace libplctag
 
                 await InitializeAsyncIfRequired(nativeTagWrapperBase, cts.Token);
 
-                var readTasks = new ConcurrentStack<TaskCompletionSource<Status>>();
+                var readTask = new TaskCompletionSource<Status>(
+                    TaskCreationOptions.RunContinuationsAsynchronously
+                );
+
                 EventHandler<TagEventArgs> readTaskCompleter = (s, e) =>
-                    TaskCompleter(readTasks, e);
+                {
+                    switch (e.Status)
+                    {
+                        case Status.Pending:
+                            // Do nothing, wait for another ReadCompleted callback
+                            break;
+                        default:
+                            readTask?.SetResult(e.Status);
+                            break;
+                    }
+                };
+
                 nativeTagWrapperBase.ReadCompleted += readTaskCompleter;
 
-                using (
-                    cts.Token.Register(() =>
-                    {
-                        if (readTasks.TryPop(out var readTask))
+                try
+                {
+                    using (
+                        cts.Token.Register(() =>
                         {
                             nativeTagWrapperBase.Abort();
-                            nativeTagWrapperBase.ReadCompleted -= readTaskCompleter;
 
                             if (token.IsCancellationRequested)
                                 readTask.SetCanceled();
                             else
                                 readTask.SetException(new LibPlcTagException(Status.ErrorTimeout));
-                        }
-                    })
-                )
+                        })
+                    )
+                    {
+                        nativeTagWrapperBase.Read(TIMEOUT_VALUE_THAT_INDICATES_ASYNC_OPERATION);
+
+                        await readTask.Task;
+                        nativeTagWrapperBase.ThrowIfStatusNotOk(readTask.Task.Result);
+                    }
+                }
+                finally
                 {
-                    var readTask = new TaskCompletionSource<Status>(
-                        TaskCreationOptions.RunContinuationsAsynchronously
-                    );
-                    readTasks.Push(readTask);
-
-                    nativeTagWrapperBase.Read(TIMEOUT_VALUE_THAT_INDICATES_ASYNC_OPERATION);
-
-                    await readTask.Task;
                     nativeTagWrapperBase.ReadCompleted -= readTaskCompleter;
-                    nativeTagWrapperBase.ThrowIfStatusNotOk(readTask.Task.Result);
                 }
             }
         }
