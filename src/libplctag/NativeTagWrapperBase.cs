@@ -590,13 +590,13 @@ namespace libplctag
             _isInitialized = true;
         }
 
-        protected libplctag.Status Read(int millisecondTimeout)
+        internal libplctag.Status Read(int millisecondTimeout)
         {
             var result = (Status)_native.plc_tag_read(nativeTagHandle, millisecondTimeout);
             return result;
         }
 
-        protected libplctag.Status Write(int millisecondTimeout)
+        internal libplctag.Status Write(int millisecondTimeout)
         {
             var result = (Status)_native.plc_tag_write(nativeTagHandle, millisecondTimeout);
             return result;
