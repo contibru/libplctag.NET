@@ -42,28 +42,27 @@ Starting with the assumption that you have a problem - presumably a vague compla
 
 1. Identify contributing factors.
 2. Develop a test harness that exercises those factors independently.
-3. Analyze the impact of each factor, and the interplay.
-
+3. Analyze the impact of each factor, and the interplay of them against each other.
 
 
 Software is complex, and identifying contributing factors is hard.
-After-all, if you knew what
-
+After-all, if you knew what the problem is you wouldn't be reading this document!
 
 
 ## Data Access with libplctag
 
 libplctag internally has an implementation of Ethernet/IP Explicit Messaging.
 
-EtherNet/IP  is an industrial network protocol that adapts CIP (Common Industrial Procol) to standard Ethernet.
-Here, IP stands for _Industrial Protocol_ (from CIP), however it does also make use of the _Internet Protocol_ for encapsulation (which is what IP stands for in "IP Address", and "TCP/IP").
+EtherNet/IP  is an industrial network protocol that adapts the [Common Industrial Protocol](https://en.wikipedia.org/wiki/Common_Industrial_Protocol) (CIP) to standard Ethernet.
+In Ethernet/IP, "IP" stands for **Industrial** Protocol (from CIP), not **Internet** Protocol (which is what IP stands for in "IP Address", and "TCP/IP").
+Confusingly, it does actually use the Internet Protocol for encapsulation.
 
-Ethernet/IP sits in the "Process Layer" in the OSI model, and utilises either User Datagram Protocol (UDP) or Transmission Control Protocol (TCP) for transport layer, Internet Protocol (IP) for Network layer, and Ethernet with CSMA/CD for Data Link layer. For the physical layer, any media can be used (Cat5, WiFi, Fibre, etc).
+Ethernet/IP sits in the "Process Layer" in the [OSI model](https://en.wikipedia.org/wiki/OSI_model), and utilises either User Datagram Protocol (UDP) or Transmission Control Protocol (TCP) for transport layer, Internet Protocol (IP) for Network layer, and Ethernet with CSMA/CD for Data Link layer. For the physical layer, any media can be used (Cat5, WiFi, Fibre, etc).
 
 A design assumption made during the development of Ethernet/IP is that it must be able to share a Data Link with other TCP/IP-based applications. This is seen to be valuable because applications based on the TCP/IP stack have become ubiquitous and hold significant mindshare, creating a compelling return on investment proposition for organizations.
 https://www.odva.org/wp-content/uploads/2020/06/PUB00123R1_Common-Industrial_Protocol_and_Family_of_CIP_Networks.pdf
 
-However, there are downsides to this approach (notably protocol efficiency), and not all networking technologies have prioritised coexistence with other network users. EtherCAT is one example.
+However, there are downsides to this approach (notably protocol efficiency), and not all networking technologies have prioritised coexistence with other network users. [EtherCAT](https://en.wikipedia.org/wiki/EtherCAT) is one example that has taken a different approach.
 
 Ethernet/IP itself can be broken down into categories:
 * Explicit Messaging (TCP/IP) - this is a request/response model
