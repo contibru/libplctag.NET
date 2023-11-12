@@ -32,10 +32,12 @@ namespace libplctag.Tests
             };
 
             // Act and Assert
-            await Assert.ThrowsAsync<LibPlcTagException>(async () =>
+            var ex = await Assert.ThrowsAsync<LibPlcTagException>(async () =>
             {
                 await tag.ReadAsync();
             });
+
+            Assert.Equal("ErrorNoData", ex.Message);
         }
 
         [Fact]
@@ -55,6 +57,8 @@ namespace libplctag.Tests
             }
             catch (LibPlcTagException ex) when (ex.Message == "ErrorNoData")
             {
+                // If this method succesfully completes then
+                // it implies that the exception is caught here
             }
         }
 
